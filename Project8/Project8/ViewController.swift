@@ -14,6 +14,7 @@ class ViewController: UIViewController {
     var currentAnswer: UITextField!
     var scoreLabel: UILabel!
     var letterButtons = [UIButton]()
+    var totalScoreLabel: UILabel!
     
     var activatedButtons = [UIButton]()
     var solutions = [String]()
@@ -21,6 +22,11 @@ class ViewController: UIViewController {
     var score = 0 {
         didSet {
             scoreLabel.text = "Score: \(score)"
+        }
+    }
+    var totalScore = 0 {
+        didSet {
+            totalScoreLabel.text = "Total score \(score)"
         }
     }
     var level = 1
@@ -34,6 +40,12 @@ class ViewController: UIViewController {
         scoreLabel.textAlignment = .right
         scoreLabel.text = "Score: 0"
         view.addSubview(scoreLabel)
+        
+        totalScoreLabel = UILabel()
+        totalScoreLabel.translatesAutoresizingMaskIntoConstraints = false
+        totalScoreLabel.textAlignment = .right
+        totalScoreLabel.text = "Total score: 0"
+        view.addSubview(totalScoreLabel)
         
         cluesLabel = UILabel()
         cluesLabel.translatesAutoresizingMaskIntoConstraints = false
@@ -80,6 +92,9 @@ class ViewController: UIViewController {
             scoreLabel.topAnchor.constraint(equalTo: view.layoutMarginsGuide.topAnchor),
             scoreLabel.trailingAnchor.constraint(equalTo: view.layoutMarginsGuide.trailingAnchor),
             
+            totalScoreLabel.topAnchor.constraint(equalTo: scoreLabel.topAnchor),
+            totalScoreLabel.trailingAnchor.constraint(equalTo: scoreLabel.leadingAnchor, constant: -20),
+            
             cluesLabel.topAnchor.constraint(equalTo: scoreLabel.bottomAnchor),
             cluesLabel.leadingAnchor.constraint(equalTo: view.layoutMarginsGuide.leadingAnchor, constant: 100),
             cluesLabel.widthAnchor.constraint(equalTo: view.layoutMarginsGuide.widthAnchor, multiplier: 0.6, constant: -100),
@@ -116,6 +131,8 @@ class ViewController: UIViewController {
                 let letterButton = UIButton(type: .system)
                 letterButton.titleLabel?.font = UIFont.systemFont(ofSize: 36)
                 letterButton.setTitle("WWW", for: .normal)
+                letterButton.layer.borderColor = UIColor.lightGray.cgColor
+                letterButton.layer.borderWidth = 0.5
                 letterButton.addTarget(self, action: #selector(letterTapped), for: .touchUpInside)
                 
                 let frame = CGRect(x: column * width, y: row * height, width: width, height: height)
@@ -153,11 +170,28 @@ class ViewController: UIViewController {
             currentAnswer.text = ""
             score += 1
             
-            if score % 7 == 0 {
+            let checker = letterButtons.allSatisfy({$0.isHidden == true})
+            
+            if checker {
+                totalScore = score
                 let ac = UIAlertController(title: "Well done", message: "Next level is coming", preferredStyle: .alert)
                 ac.addAction(UIAlertAction(title: "Go!", style: .default, handler: levelUp))
                 present(ac, animated: true)
             }
+        } else {
+            let ac = UIAlertController(title: "This is wrong!", message: nil, preferredStyle: .alert)
+            ac.addAction(UIAlertAction(title: "OK", style: .default))
+            present(ac, animated: true)
+            
+            score -= 1
+            
+            currentAnswer.text = ""
+            
+            for button in activatedButtons {
+                button.isHidden = false
+            }
+            
+            activatedButtons.removeAll()
         }
     }
     
